@@ -31,27 +31,16 @@ public class DropView extends FrameLayout {
     private int mBzrOffset;
     private Mode mMode = Mode.PULL;
 
-    enum Mode {
-        NONE, PULL, LOADING
-    }
 
+
+    enum Mode {
+        NONE, PULL, LOADING;
+    }
     private android.view.GestureDetector.OnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             if (mMode == Mode.PULL) {
-                mDistanceY += (int) distanceY;
-                if (mDistanceY < -mPullRange) {
-                    onLoading();
-                    return true;
-                }
-
-                if (mDistanceY > 0) {
-                    mDistanceY = 0;
-                }
-
-                onDistanceYChanged(mDistanceY);
-
-                invalidate();
+                setDistanceY((int) distanceY);
                 return true;
             } else {
                 return super.onScroll(e1, e2, distanceX, distanceY);
@@ -62,6 +51,10 @@ public class DropView extends FrameLayout {
     private void onLoading() {
         mMode = Mode.LOADING;
         enableLoading(true);
+    }
+
+    public void setScroll(int i) {
+        setDistanceY(-i);
     }
 
     private ProgressBar mLoadingView;
@@ -80,8 +73,21 @@ public class DropView extends FrameLayout {
     }
 
     public void setDistanceY(int distanceY) {
-        mDistanceY = distanceY;
-        invalidate();
+        System.out.println("distanceY = " + distanceY);
+        if (mMode == Mode.PULL) {
+            mDistanceY += distanceY;
+            if (mDistanceY < -mPullRange) {
+                onLoading();
+                return;
+            }
+
+            if (mDistanceY > 0) {
+                mDistanceY = 0;
+            }
+
+            onDistanceYChanged(mDistanceY);
+            invalidate();
+        }
     }
 
     enum Side {
