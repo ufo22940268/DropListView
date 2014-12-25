@@ -13,7 +13,8 @@ public class DropViewContainer extends ListView {
 
     public DropViewContainer(Context context, AttributeSet attrs) {
         super(context, attrs);
-        View headerView = LayoutInflater.from(context).inflate(R.layout.sample_my_view, this, false);
+        View headerView = LayoutInflater.from(context).inflate(
+                R.layout.sample_my_view, this, false);
         addHeaderView(headerView);
     }
 }

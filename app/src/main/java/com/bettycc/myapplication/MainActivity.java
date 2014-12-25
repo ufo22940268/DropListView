@@ -15,5 +15,11 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        DropViewContainer dropViewContainer = (DropViewContainer) findViewById(R.id.list);
+        dropViewContainer.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[] {
+                "a",
+                "b",
+                "c"
+        }));
     }
 }
