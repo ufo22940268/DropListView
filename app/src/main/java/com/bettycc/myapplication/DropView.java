@@ -18,6 +18,7 @@ import android.widget.ProgressBar;
 
 public class DropView extends FrameLayout {
 
+    private static final float SHRINK_FACTOR = 0.7f;
     private GestureDetector mGestureDetector;
 
     private int mDistanceY = 0;
@@ -189,6 +190,6 @@ public class DropView extends FrameLayout {
     }
 
     public int dpToPx(float dp) {
-        return (int) (getResources().getDisplayMetrics().density * dp);
+        return (int) (getResources().getDisplayMetrics().density * dp * SHRINK_FACTOR);
     }
 }

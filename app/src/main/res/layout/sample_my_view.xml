@@ -5,10 +5,8 @@
 
     <com.bettycc.myapplication.DropView
         android:background="#ccc"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:paddingLeft="20dp"
-        android:paddingBottom="40dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         />
 
 </FrameLayout>
