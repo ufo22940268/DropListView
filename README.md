@@ -38,4 +38,4 @@ When refreshing finished, remeber to call `mListView.onRefreshCompleted` callbac
 
 ##Demo
 
-[](./demo.apk)
+[apk](./demo.apk)
