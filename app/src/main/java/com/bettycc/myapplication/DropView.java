@@ -19,6 +19,7 @@ import android.widget.ProgressBar;
 public class DropView extends FrameLayout {
 
     private static final float SHRINK_FACTOR = 0.7f;
+    public static final double MIN_RADIUS1_FACTOR = 0.8;
     private GestureDetector mGestureDetector;
 
     private int mDistanceY = 0;
@@ -35,6 +36,7 @@ public class DropView extends FrameLayout {
 
     private Mode mMode = Mode.PULL;
     private int mColorRes;
+    private float mMinRadius1;
 
     public ProgressBar getLoadingView() {
         return mLoadingView;
@@ -83,15 +85,6 @@ public class DropView extends FrameLayout {
         setDistanceY(-i);
     }
 
-    private void onDistanceYChanged(int distanceY) {
-        float v = (1 - getScrollPercent()) * mRadius1;
-        if (v < mMinRadius2) {
-            v = mMinRadius2;
-        }
-
-        mRadius2 = (int) v;
-    }
-
     public float getDistanceY() {
         return mDistanceY;
     }
@@ -114,8 +107,24 @@ public class DropView extends FrameLayout {
         }
     }
 
+
+
+    private void onDistanceYChanged(int distanceY) {
+        float v = (1 - getScrollPercent()) * mRadius1;
+        if (v < mMinRadius2) {
+            v = mMinRadius2;
+        }
+
+        mRadius2 = (int) v;
+
+        v = mMinRadius1 + (mRadius1 - mMinRadius1) * getScrollPercent();
+        if (v < mMinRadius1) {
+            v = mMinRadius1;
+        }
+        mRadius1 = (int) v;
+    }
     enum Side {
-        LEFT, RIGHT
+        LEFT, RIGHT;
     }
 
 
@@ -138,6 +147,7 @@ public class DropView extends FrameLayout {
         mColorRes = R.color.drop_view_color;
         mGestureDetector = new GestureDetector(getContext(), mGestureListener);
         mRadius1 = dpToPx(25);
+        mMinRadius1 = (float) (mRadius1 * MIN_RADIUS1_FACTOR);
         mRadius2 = mRadius1;
         mMinRadius2 = (float) (mRadius2 * 0.4);
         mTopPadding = dpToPx(15);
