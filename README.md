@@ -38,4 +38,4 @@ When refreshing finished, remeber to call `mListView.onRefreshCompleted` callbac
 
 ##Demo
 
-[apk](./demo.apk)
+[apk](https://github.com/ufo22940268/DropRefreshView/raw/master/demo.apk)
