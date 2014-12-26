@@ -1,8 +1,7 @@
-package com.bettycc.myapplication;
+package com.bettycc.droprefreshview.library;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -28,14 +27,13 @@ public class DropView extends FrameLayout {
     private int mRadius2;
     private float mMinRadius2;
     private int mTopPadding;
-    private int mPullRange;
+    private int mPullThreshold;
     private int mBzrOffset;
     private ProgressBar mLoadingView;
 
 
-
     private Mode mMode = Mode.PULL;
-    private int mColorRes;
+    private int mColor;
     private float mMinRadius1;
 
     public ProgressBar getLoadingView() {
@@ -58,6 +56,14 @@ public class DropView extends FrameLayout {
 
     public Mode getMode() {
         return mMode;
+    }
+
+    public int getPullThreshold() {
+        return mPullThreshold;
+    }
+
+    public void setColor(int color) {
+        mColor = color;
     }
 
     enum Mode {
@@ -92,7 +98,7 @@ public class DropView extends FrameLayout {
     public void setDistanceY(int distanceY) {
         System.out.println("distanceY = " + distanceY);
         if (mMode == Mode.PULL) {
-            if (distanceY < -mPullRange) {
+            if (distanceY < -mPullThreshold) {
                 return;
             }
 
@@ -143,14 +149,14 @@ public class DropView extends FrameLayout {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
-        mColorRes = R.color.drop_view_color;
+        mColor = getResources().getColor(R.color.drop_view_color);
         mGestureDetector = new GestureDetector(getContext(), mGestureListener);
         mRadius1 = dpToPx(25);
         mMinRadius1 = (float) (mRadius1 * MIN_RADIUS1_FACTOR);
         mRadius2 = mRadius1;
         mMinRadius2 = (float) (mRadius2 * 0.4);
         mTopPadding = dpToPx(15);
-        mPullRange = dpToPx(100);
+        mPullThreshold = dpToPx(100);
         mBzrOffset = dpToPx(10);
 
         mLoadingView = new ProgressBar(getContext());
@@ -193,7 +199,7 @@ public class DropView extends FrameLayout {
     private void drawPull(Canvas canvas) {
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(getResources().getColor(mColorRes));
+        paint.setColor(mColor);
 
         int cp1Y = mTopPadding + mRadius1;
         Point cp1 = new Point(getWidth() / 2, cp1Y);
@@ -226,7 +232,7 @@ public class DropView extends FrameLayout {
     }
 
     private float getScrollPercent() {
-        return (-getDistanceY()) / mPullRange;
+        return (-getDistanceY()) / mPullThreshold;
     }
 
     public int dpToPx(float dp) {

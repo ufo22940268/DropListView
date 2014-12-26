@@ -3,5 +3,5 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="drop_view_height">200dp</dimen>
-    <dimen name="pull_offset">55dp</dimen>
+    <dimen name="drop_view_loading_header_height">55dp</dimen>
 </resources>
