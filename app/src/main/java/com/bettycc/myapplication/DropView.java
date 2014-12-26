@@ -40,7 +40,7 @@ public class DropView extends FrameLayout {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             if (mMode == Mode.PULL) {
-                setDistanceY((int) distanceY);
+                setDistanceY((int) (mDistanceY + distanceY));
                 return true;
             } else {
                 return super.onScroll(e1, e2, distanceX, distanceY);
@@ -75,12 +75,12 @@ public class DropView extends FrameLayout {
     public void setDistanceY(int distanceY) {
         System.out.println("distanceY = " + distanceY);
         if (mMode == Mode.PULL) {
-            mDistanceY += distanceY;
-            if (mDistanceY < -mPullRange) {
+            if (distanceY < -mPullRange) {
                 onLoading();
                 return;
             }
 
+            mDistanceY = distanceY;
             if (mDistanceY > 0) {
                 mDistanceY = 0;
             }
@@ -116,8 +116,8 @@ public class DropView extends FrameLayout {
         mRadius2 = mRadius1;
         mMinRadius2 = (float) (mRadius2 * 0.4);
         mTopPadding = dpToPx(15);
-        mPullRange = dpToPx(200);
-        mBzrOffset = dpToPx(20);
+        mPullRange = dpToPx(100);
+        mBzrOffset = dpToPx(10);
 
         mLoadingView = new ProgressBar(getContext());
         mLoadingView.setIndeterminate(true);
