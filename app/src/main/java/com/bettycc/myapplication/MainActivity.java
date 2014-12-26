@@ -42,7 +42,7 @@ public class MainActivity extends ActionBarActivity {
                     @Override
                     public void run() {
                         try {
-                            Thread.sleep(3000);
+                            Thread.sleep(5000);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

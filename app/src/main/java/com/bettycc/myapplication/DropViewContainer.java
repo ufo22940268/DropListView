@@ -25,10 +25,14 @@ public class DropViewContainer extends ListView {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             if (getFirstVisiblePosition() == 0) {
-                updateHeaderHeight((int) (mDropView.getBottom() + (-distanceY)));
+                int headerHeight = (int) (mDropView.getBottom() + (-distanceY));
+                updateHeaderHeight(headerHeight);
+                updateDropviewScroll(headerHeight);
             } else {
                 updateHeaderHeight(0);
+                updateDropviewScroll(0);
             }
+            onDropviewScrollUpdated();
             return true;
         }
     };
@@ -36,33 +40,46 @@ public class DropViewContainer extends ListView {
     private final GestureDetector mGestureDetector;
     private final View mHeaderView;
     private final float mDropViewHeight;
-    private final float mPullOffset;
+    private final float mLoadingHeaderHeight;
     private ValueAnimator mRestoreAnimator;
+    private ValueAnimator mScrollToLoadingAnimator;
 
     public DropViewContainer(Context context, AttributeSet attrs) {
         super(context, attrs);
         mDropViewHeight = getResources().getDimension(R.dimen.drop_view_height);
-        mPullOffset = getResources().getDimension(R.dimen.pull_offset);
+        mLoadingHeaderHeight = getResources().getDimension(R.dimen.drop_view_loading_header_height);
         mGestureDetector = new GestureDetector(context, mGestureListener);
         mHeaderView = LayoutInflater.from(context).inflate(
                 R.layout.item_drop_view, this, false);
         mDropView = (DropView) mHeaderView.findViewById(R.id.drop);
         addHeaderView(mHeaderView);
         updateHeaderHeight(0);
+        updateDropviewScroll(0);
     }
 
-    private void updateHeaderHeight(int i) {
-        mDropView.getLayoutParams().height = i;
-        mDropView.setScroll((int) ((i - mPullOffset) * SCROLL_FACTOR));
+    private void updateHeaderHeight(int headerHeight) {
+        mDropView.getLayoutParams().height = headerHeight;
         mDropView.requestLayout();
+    }
+
+    private void updateDropviewScroll(int headerHeight) {
+        mDropView.setScroll(convertHeaderHeightToScroll(headerHeight));
+    }
+
+    private int convertHeaderHeightToScroll(int i) {
+        return (int) ((i - mLoadingHeaderHeight) * SCROLL_FACTOR);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (isRestoring()) {
+        if (isRestoreAnimatorRunning()) {
             return true;
         }
-        mGestureDetector.onTouchEvent(ev);
+
+        if (mDropView.getMode() == DropView.Mode.PULL && !isScrollToLoadingAnimatorRunning()) {
+            mGestureDetector.onTouchEvent(ev);
+        }
+
         if (ev.getAction() == MotionEvent.ACTION_UP) {
             onPullRelease();
         }
@@ -70,22 +87,39 @@ public class DropViewContainer extends ListView {
         return super.onTouchEvent(ev);
     }
 
-    private boolean isRestoring() {
+    private boolean isRestoreAnimatorRunning() {
         return mRestoreAnimator != null && mRestoreAnimator.isRunning();
     }
 
     private void onPullRelease() {
-        int bottom = mHeaderView.getBottom();
-        if (getFirstVisiblePosition() == 0 && bottom > 0) {
-            int to;
-            if (bottom < mPullOffset) {
-                to = 0;
-            } else {
-                to = (int) mPullOffset;
+        int to;
+        if (pullOverThreshold()) {
+            to = (int) mLoadingHeaderHeight;
+        } else {
+            to = 0;
+        }
+        mRestoreAnimator = getHeaderScrollAnimator(to, new OnHeaderHeightUpdatedListener() {
+            @Override
+            public void onHeightUpdated(int height) {
+                updateHeaderHeight(height);
             }
-            mRestoreAnimator = getHeaderScrollAnimator(to);
-            mRestoreAnimator.start();
-            mRestoreAnimator.addListener(new Animator.AnimatorListener() {
+        });
+        mRestoreAnimator.start();
+    }
+
+    private boolean pullOverThreshold() {
+        return convertHeaderHeightToScroll(getHeaderBottom()) > mDropView.getPullThreshold();
+    }
+
+    private void onDropviewScrollUpdated() {
+        int bottom = mHeaderView.getBottom();
+        if (getFirstVisiblePosition() == 0
+                && bottom > 0
+                && mDropView.getMode() == DropView.Mode.PULL
+                && !isScrollToLoadingAnimatorRunning()
+                && convertHeaderHeightToScroll(bottom) > mDropView.getPullThreshold()) {
+            mScrollToLoadingAnimator = getDropViewScrollAnimator((int) mLoadingHeaderHeight);
+            mScrollToLoadingAnimator.addListener(new Animator.AnimatorListener() {
 
                 @Override
                 public void onAnimationStart(Animator animation) {
@@ -102,10 +136,6 @@ public class DropViewContainer extends ListView {
 
                 @Override
                 public void onAnimationCancel(Animator animation) {
-                    if (mOnRefreshListener != null) {
-                        mOnRefreshListener.onPullDownToRefresh();
-                        mDropView.onLoading();
-                    }
                 }
 
                 @Override
@@ -113,10 +143,15 @@ public class DropViewContainer extends ListView {
 
                 }
             });
+            mScrollToLoadingAnimator.start();
         }
     }
 
-    private ValueAnimator getHeaderScrollAnimator(int to) {
+    private boolean isScrollToLoadingAnimatorRunning() {
+        return mScrollToLoadingAnimator != null && mScrollToLoadingAnimator.isRunning();
+    }
+
+    private ValueAnimator getHeaderScrollAnimator(int to, final OnHeaderHeightUpdatedListener headerHeightUpdatedListener) {
         ValueAnimator restoreAnimator = ValueAnimator.ofFloat(mHeaderView.getBottom(), to);
         restoreAnimator.setDuration(getResources().getInteger(android.R.integer.config_shortAnimTime));
         restoreAnimator.setInterpolator(new AccelerateInterpolator());
@@ -124,7 +159,21 @@ public class DropViewContainer extends ListView {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float v = ((Float) (animation.getAnimatedValue())).floatValue();
-                updateHeaderHeight((int) v);
+                headerHeightUpdatedListener.onHeightUpdated((int) v);
+            }
+        });
+        return restoreAnimator;
+    }
+
+    private ValueAnimator getDropViewScrollAnimator(int to) {
+        ValueAnimator restoreAnimator = ValueAnimator.ofFloat(mHeaderView.getBottom(), to);
+        restoreAnimator.setDuration(getResources().getInteger(android.R.integer.config_shortAnimTime));
+        restoreAnimator.setInterpolator(new AccelerateInterpolator());
+        restoreAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float v = ((Float) (animation.getAnimatedValue())).floatValue();
+                updateDropviewScroll((int) v);
             }
         });
         return restoreAnimator;
@@ -139,32 +188,47 @@ public class DropViewContainer extends ListView {
     }
 
     public void onRefreshCompleted() {
-        mRestoreAnimator = getHeaderScrollAnimator(0);
-        mRestoreAnimator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
+        if (getHeaderBottom() > 0) {
+            mRestoreAnimator = getHeaderScrollAnimator(0, new OnHeaderHeightUpdatedListener() {
+                @Override
+                public void onHeightUpdated(int height) {
+                    updateHeaderHeight(height);
+                }
+            });
+            mRestoreAnimator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
 
-            }
+                }
 
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mDropView.reset();
-            }
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mDropView.reset();
+                }
 
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                mDropView.reset();
-            }
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                    mDropView.reset();
+                }
 
-            @Override
-            public void onAnimationRepeat(Animator animation) {
+                @Override
+                public void onAnimationRepeat(Animator animation) {
 
-            }
-        });
-        mRestoreAnimator.start();
+                }
+            });
+            mRestoreAnimator.start();
+        }
+    }
+
+    private int getHeaderBottom() {
+        return mHeaderView.getBottom();
     }
 
     public static interface OnRefreshListener {
         public void onPullDownToRefresh();
+    }
+
+    public static interface OnHeaderHeightUpdatedListener {
+        public void onHeightUpdated(int height);
     }
 }
