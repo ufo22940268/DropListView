@@ -78,7 +78,7 @@ public class DropViewContainer extends ListView {
         int bottom = mHeaderView.getBottom();
         if (getFirstVisiblePosition() == 0 && bottom > 0) {
             int to;
-            if (bottom < mPullOffset || mDropView.getMode() == DropView.Mode.PULL) {
+            if (bottom < mPullOffset) {
                 to = 0;
             } else {
                 to = (int) mPullOffset;
@@ -96,6 +96,7 @@ public class DropViewContainer extends ListView {
                 public void onAnimationEnd(Animator animation) {
                     if (mOnRefreshListener != null) {
                         mOnRefreshListener.onPullDownToRefresh();
+                        mDropView.onLoading();
                     }
                 }
 
@@ -103,6 +104,7 @@ public class DropViewContainer extends ListView {
                 public void onAnimationCancel(Animator animation) {
                     if (mOnRefreshListener != null) {
                         mOnRefreshListener.onPullDownToRefresh();
+                        mDropView.onLoading();
                     }
                 }
 

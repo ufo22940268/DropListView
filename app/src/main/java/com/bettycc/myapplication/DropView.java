@@ -76,7 +76,7 @@ public class DropView extends FrameLayout {
         }
     };
 
-    private void onLoading() {
+    public void onLoading() {
         mMode = Mode.LOADING;
         enableLoading(true);
     }
@@ -93,7 +93,6 @@ public class DropView extends FrameLayout {
         System.out.println("distanceY = " + distanceY);
         if (mMode == Mode.PULL) {
             if (distanceY < -mPullRange) {
-                onLoading();
                 return;
             }
 
