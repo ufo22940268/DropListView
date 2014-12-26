@@ -1,6 +1,7 @@
-package com.bettycc.myapplication;
+package com.bettycc.droprefreshview.library;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -15,7 +16,7 @@ import com.nineoldandroids.animation.ValueAnimator;
 /**
  * Created by ccheng on 12/25/14.
  */
-public class DropViewContainer extends ListView {
+public class DropListView extends ListView {
 
     private static final float SCROLL_FACTOR = 0.9f;
     private final DropView mDropView;
@@ -44,14 +45,18 @@ public class DropViewContainer extends ListView {
     private ValueAnimator mRestoreAnimator;
     private ValueAnimator mScrollToLoadingAnimator;
 
-    public DropViewContainer(Context context, AttributeSet attrs) {
+    public DropListView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.DropListView);
+        int dropColor = typedArray.getColor(R.styleable.DropListView_drop_color, R.color.drop_view_color);
+        typedArray.recycle();
         mDropViewHeight = getResources().getDimension(R.dimen.drop_view_height);
         mLoadingHeaderHeight = getResources().getDimension(R.dimen.drop_view_loading_header_height);
         mGestureDetector = new GestureDetector(context, mGestureListener);
         mHeaderView = LayoutInflater.from(context).inflate(
                 R.layout.item_drop_view, this, false);
         mDropView = (DropView) mHeaderView.findViewById(R.id.drop);
+        mDropView.setColor(dropColor);
         addHeaderView(mHeaderView);
         updateHeaderHeight(0);
         updateDropviewScroll(0);

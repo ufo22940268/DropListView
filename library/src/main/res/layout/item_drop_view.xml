@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <com.bettycc.myapplication.DropView
+    <com.bettycc.droprefreshview.library.DropView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/drop"
         android:background="@android:color/transparent"

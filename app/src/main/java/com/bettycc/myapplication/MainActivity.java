@@ -1,12 +1,10 @@
 package com.bettycc.myapplication;
 
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.ArrayAdapter;
+
+import com.bettycc.droprefreshview.library.DropListView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +21,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final DropViewContainer dropViewContainer = (DropViewContainer) findViewById(R.id.list);
+        final DropListView dropListView = (DropListView) findViewById(R.id.list);
         String[] strings = new String[]{
                 "a",
                 "b",
@@ -31,8 +29,8 @@ public class MainActivity extends ActionBarActivity {
         };
         mStringList = new ArrayList(Arrays.asList(strings));
         mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mStringList);
-        dropViewContainer.setAdapter(mAdapter);
-        dropViewContainer.setOnRefreshListener(new DropViewContainer.OnRefreshListener() {
+        dropListView.setAdapter(mAdapter);
+        dropListView.setOnRefreshListener(new DropListView.OnRefreshListener() {
             @Override
             public void onPullDownToRefresh() {
                 /**
@@ -48,7 +46,7 @@ public class MainActivity extends ActionBarActivity {
                                 public void run() {
                                     mStringList.add(String.valueOf(((char) (mStringList.get(mStringList.size() - 1).charAt(0) + 1))));
                                     mAdapter.notifyDataSetChanged();
-                                    dropViewContainer.onRefreshCompleted();
+                                    dropListView.onRefreshCompleted();
                                 }
                             });
                         } catch (InterruptedException e) {

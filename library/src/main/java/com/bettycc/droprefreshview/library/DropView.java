@@ -1,4 +1,4 @@
-package com.bettycc.myapplication;
+package com.bettycc.droprefreshview.library;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -33,7 +33,7 @@ public class DropView extends FrameLayout {
 
 
     private Mode mMode = Mode.PULL;
-    private int mColorRes;
+    private int mColor;
     private float mMinRadius1;
 
     public ProgressBar getLoadingView() {
@@ -60,6 +60,10 @@ public class DropView extends FrameLayout {
 
     public int getPullThreshold() {
         return mPullThreshold;
+    }
+
+    public void setColor(int color) {
+        mColor = color;
     }
 
     enum Mode {
@@ -145,7 +149,7 @@ public class DropView extends FrameLayout {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
-        mColorRes = R.color.drop_view_color;
+        mColor = getResources().getColor(R.color.drop_view_color);
         mGestureDetector = new GestureDetector(getContext(), mGestureListener);
         mRadius1 = dpToPx(25);
         mMinRadius1 = (float) (mRadius1 * MIN_RADIUS1_FACTOR);
@@ -195,7 +199,7 @@ public class DropView extends FrameLayout {
     private void drawPull(Canvas canvas) {
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(getResources().getColor(mColorRes));
+        paint.setColor(mColor);
 
         int cp1Y = mTopPadding + mRadius1;
         Point cp1 = new Point(getWidth() / 2, cp1Y);
