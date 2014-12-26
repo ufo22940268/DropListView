@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.ListView;
 
+import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.ValueAnimator;
 
 /**
@@ -18,11 +19,11 @@ public class DropViewContainer extends ListView {
 
     private static final float SCROLL_FACTOR = 0.9f;
     private final DropView mDropView;
+    private OnRefreshListener mOnRefreshListener;
 
     private final android.view.GestureDetector.OnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            System.out.println("e2.getAction() = " + e2.getAction());
             if (getFirstVisiblePosition() == 0) {
                 updateHeaderHeight((int) (mDropView.getBottom() + (-distanceY)));
             } else {
@@ -77,13 +78,39 @@ public class DropViewContainer extends ListView {
         int bottom = mHeaderView.getBottom();
         if (getFirstVisiblePosition() == 0 && bottom > 0) {
             int to;
-            if (bottom < mPullOffset) {
+            if (bottom < mPullOffset || mDropView.getMode() == DropView.Mode.PULL) {
                 to = 0;
             } else {
                 to = (int) mPullOffset;
             }
             mRestoreAnimator = getHeaderScrollAnimator(to);
             mRestoreAnimator.start();
+            mRestoreAnimator.addListener(new Animator.AnimatorListener() {
+
+                @Override
+                public void onAnimationStart(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    if (mOnRefreshListener != null) {
+                        mOnRefreshListener.onPullDownToRefresh();
+                    }
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                    if (mOnRefreshListener != null) {
+                        mOnRefreshListener.onPullDownToRefresh();
+                    }
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+
+                }
+            });
         }
     }
 
@@ -99,5 +126,43 @@ public class DropViewContainer extends ListView {
             }
         });
         return restoreAnimator;
+    }
+
+    public OnRefreshListener getOnRefreshListener() {
+        return mOnRefreshListener;
+    }
+
+    public void setOnRefreshListener(OnRefreshListener onRefreshListener) {
+        mOnRefreshListener = onRefreshListener;
+    }
+
+    public void onRefreshCompleted() {
+        mRestoreAnimator = getHeaderScrollAnimator(0);
+        mRestoreAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mDropView.reset();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mDropView.reset();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        mRestoreAnimator.start();
+    }
+
+    public static interface OnRefreshListener {
+        public void onPullDownToRefresh();
     }
 }

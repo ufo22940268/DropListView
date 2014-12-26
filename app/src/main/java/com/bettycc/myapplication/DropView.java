@@ -29,13 +29,39 @@ public class DropView extends FrameLayout {
     private int mTopPadding;
     private int mPullRange;
     private int mBzrOffset;
+    private ProgressBar mLoadingView;
+
+
+
     private Mode mMode = Mode.PULL;
+    private int mColorRes;
 
+    public ProgressBar getLoadingView() {
+        return mLoadingView;
+    }
 
+    public void setLoadingView(ProgressBar loadingView) {
+        mLoadingView = loadingView;
+    }
+
+    public void reset() {
+        setStatus(Mode.PULL);
+        enableLoading(false);
+    }
+
+    private void setStatus(Mode mode) {
+        mMode = mode;
+        invalidate();
+    }
+
+    public Mode getMode() {
+        return mMode;
+    }
 
     enum Mode {
         NONE, PULL, LOADING;
     }
+
     private android.view.GestureDetector.OnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
@@ -56,8 +82,6 @@ public class DropView extends FrameLayout {
     public void setScroll(int i) {
         setDistanceY(-i);
     }
-
-    private ProgressBar mLoadingView;
 
     private void onDistanceYChanged(int distanceY) {
         float v = (1 - getScrollPercent()) * mRadius1;
@@ -111,6 +135,7 @@ public class DropView extends FrameLayout {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
+        mColorRes = R.color.drop_view_color;
         mGestureDetector = new GestureDetector(getContext(), mGestureListener);
         mRadius1 = dpToPx(25);
         mRadius2 = mRadius1;
@@ -159,7 +184,7 @@ public class DropView extends FrameLayout {
     private void drawPull(Canvas canvas) {
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.RED);
+        paint.setColor(getResources().getColor(mColorRes));
 
         int cp1Y = mTopPadding + mRadius1;
         Point cp1 = new Point(getWidth() / 2, cp1Y);
