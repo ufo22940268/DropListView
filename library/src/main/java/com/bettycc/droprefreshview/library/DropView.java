@@ -197,7 +197,7 @@ public class DropView extends FrameLayout {
     }
 
     private void drawPull(Canvas canvas) {
-        Paint paint = new Paint();
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(mColor);
 

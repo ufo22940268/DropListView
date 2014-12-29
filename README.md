@@ -6,7 +6,7 @@ A new PullToRefresh View like the mail app in ios.
 
 ##Import in gradle
 
-    compile 'me.biubiubiu.droprefreshview:library:0.1.0'
+    compile 'me.biubiubiu.droprefreshview:library:0.1.1'
 
 ##Usage
 
