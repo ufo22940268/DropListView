@@ -1,10 +1,13 @@
 package com.bettycc.droprefreshview.library;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -35,6 +38,7 @@ public class DropView extends FrameLayout {
     private Mode mMode = Mode.PULL;
     private int mColor;
     private float mMinRadius1;
+    private Bitmap mIconBitmap;
 
     public ProgressBar getLoadingView() {
         return mLoadingView;
@@ -167,6 +171,8 @@ public class DropView extends FrameLayout {
         params.gravity = Gravity.CENTER_HORIZONTAL;
         mLoadingView.setLayoutParams(params);
 
+        mIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_refresh_white_48dp);
+
         /**
          * Adjust loading view position to fit drop view.
          */
@@ -197,7 +203,7 @@ public class DropView extends FrameLayout {
     }
 
     private void drawPull(Canvas canvas) {
-        Paint paint = new Paint();
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(mColor);
 
@@ -211,12 +217,31 @@ public class DropView extends FrameLayout {
         RectF rectF = new RectF(cp1.x - mRadius1, cp1.y - mRadius1, cp1.x + mRadius1, cp1.y + mRadius1);
         path.addArc(rectF, -180, 180);
 
+        /**
+         * Draw loading icon.
+         */
+        RectF circleRect = new RectF(rectF);
+
         addBzr(path, cp1.x + mRadius1, cp1.y, cp2.x + mRadius2, cp2.y, Side.RIGHT);
         rectF = new RectF(cp2.x - mRadius2, cp2.y - mRadius2, cp2.x + mRadius2, cp2.y + mRadius2);
         path.addArc(rectF, 0, 180);
         addBzr(path, cp2.x - mRadius2, cp2.y, cp1.x - mRadius1, cp1.y, Side.LEFT);
 
         canvas.drawPath(path, paint);
+
+        drawLoadingIcon(canvas, circleRect);
+    }
+
+    private void drawLoadingIcon(Canvas canvas, RectF rectf) {
+        int l = dpToPx(4), r = dpToPx(4), b = dpToPx(4);
+        int t = 2;
+        Rect src = new Rect(0, 0, mIconBitmap.getWidth(), mIconBitmap.getHeight());
+        Rect dst = new Rect((int)rectf.left, (int)rectf.top, (int)rectf.right, (int)rectf.bottom);
+        dst.left = dst.left + l;
+        dst.top = dst.top + t;
+        dst.right = dst.right - r;
+        dst.bottom = dst.bottom - b;
+        canvas.drawBitmap(mIconBitmap, src, dst, null);
     }
 
     private void addBzr(Path path, int x, int y, int x1, int y1, Side side) {
