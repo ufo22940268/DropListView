@@ -233,15 +233,18 @@ public class DropView extends FrameLayout {
     }
 
     private void drawLoadingIcon(Canvas canvas, RectF rectf) {
-        int l = dpToPx(4), r = dpToPx(4), b = dpToPx(4);
-        int t = 2;
+        canvas.save();
+        canvas.translate(0, -dpToPx(2));
+        int l = dpToPx(8), r = dpToPx(8), b = dpToPx(8);
+        int t = dpToPx(8);
         Rect src = new Rect(0, 0, mIconBitmap.getWidth(), mIconBitmap.getHeight());
-        Rect dst = new Rect((int)rectf.left, (int)rectf.top, (int)rectf.right, (int)rectf.bottom);
+        Rect dst = new Rect((int) rectf.left, (int) rectf.top, (int) rectf.right, (int) rectf.bottom);
         dst.left = dst.left + l;
         dst.top = dst.top + t;
         dst.right = dst.right - r;
         dst.bottom = dst.bottom - b;
         canvas.drawBitmap(mIconBitmap, src, dst, null);
+        canvas.restore();
     }
 
     private void addBzr(Path path, int x, int y, int x1, int y1, Side side) {

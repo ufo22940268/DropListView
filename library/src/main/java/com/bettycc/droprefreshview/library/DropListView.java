@@ -62,12 +62,12 @@ public class DropListView extends ListView {
         updateDropviewScroll(0);
     }
 
-    private void updateHeaderHeight(int headerHeight) {
+    public void updateHeaderHeight(int headerHeight) {
         mDropView.getLayoutParams().height = headerHeight;
         mDropView.requestLayout();
     }
 
-    private void updateDropviewScroll(int headerHeight) {
+    public void updateDropviewScroll(int headerHeight) {
         mDropView.setScroll(convertHeaderHeightToScroll(headerHeight));
     }
 
@@ -227,6 +227,10 @@ public class DropListView extends ListView {
 
     private int getHeaderBottom() {
         return mHeaderView.getBottom();
+    }
+
+    public DropView getDropView() {
+        return mDropView;
     }
 
     public static interface OnRefreshListener {
