@@ -44,6 +44,7 @@ public class DropListView extends ListView {
     private final float mLoadingHeaderHeight;
     private ValueAnimator mRestoreAnimator;
     private ValueAnimator mScrollToLoadingAnimator;
+    private boolean mReleaseScrollStarted;
 
     public DropListView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -81,13 +82,17 @@ public class DropListView extends ListView {
             return true;
         }
 
-        if (mDropView.getMode() == DropView.Mode.PULL && !isScrollToLoadingAnimatorRunning()) {
-            mGestureDetector.onTouchEvent(ev);
+        if (mDropView.getMode() == DropView.Mode.PULL) {
+            if (!isScrollToLoadingAnimatorRunning()) {
+                mGestureDetector.onTouchEvent(ev);
+            }
         }
 
-        if (ev.getAction() == MotionEvent.ACTION_UP) {
+        if (ev.getAction() == MotionEvent.ACTION_UP && !mReleaseScrollStarted) {
             onPullRelease();
         }
+
+
 
         return super.onTouchEvent(ev);
     }
@@ -97,6 +102,7 @@ public class DropListView extends ListView {
     }
 
     private void onPullRelease() {
+        mReleaseScrollStarted = true;
         int to;
         if (pullOverThreshold()) {
             to = (int) mLoadingHeaderHeight;
@@ -230,11 +236,13 @@ public class DropListView extends ListView {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     mDropView.reset();
+                    mReleaseScrollStarted = false;
                 }
 
                 @Override
                 public void onAnimationCancel(Animator animation) {
                     mDropView.reset();
+                    mReleaseScrollStarted = false;
                 }
 
                 @Override
