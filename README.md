@@ -36,6 +36,3 @@ When refreshing finished, remeber to call `mListView.onRefreshCompleted` callbac
         <attr name="drop_color" format="color"/>
     </declare-styleable>
 
-##Demo
-
-[apk](./demo.apk)
