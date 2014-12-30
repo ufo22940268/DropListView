@@ -109,6 +109,27 @@ public class DropListView extends ListView {
                 updateHeaderHeight(height);
             }
         });
+        mRestoreAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                mDropView.showLoadingIcon(false);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mDropView.showLoadingIcon(true);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mDropView.showLoadingIcon(true);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
         mRestoreAnimator.start();
     }
 

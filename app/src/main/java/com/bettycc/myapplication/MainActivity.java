@@ -30,9 +30,6 @@ public class MainActivity extends ActionBarActivity {
         mStringList = new ArrayList(Arrays.asList(strings));
         mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mStringList);
         dropListView.setAdapter(mAdapter);
-        int headerHeight = 100;
-        dropListView.updateHeaderHeight(headerHeight);
-        dropListView.updateDropviewScroll(headerHeight);
         dropListView.setOnRefreshListener(new DropListView.OnRefreshListener() {
             @Override
             public void onPullDownToRefresh() {

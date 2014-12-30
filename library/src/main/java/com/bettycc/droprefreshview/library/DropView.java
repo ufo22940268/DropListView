@@ -21,7 +21,8 @@ import android.widget.ProgressBar;
 public class DropView extends FrameLayout {
 
     private static final float SHRINK_FACTOR = 0.7f;
-    public static final double MIN_RADIUS1_FACTOR = 0.8;
+    public static final float MIN_RADIUS1_FACTOR = 0.8f;
+    public static final float MIN_RADIUS2_FACTOR = 0.3f;
     private GestureDetector mGestureDetector;
 
     private int mDistanceY = 0;
@@ -33,12 +34,21 @@ public class DropView extends FrameLayout {
     private int mPullThreshold;
     private int mBzrOffset;
     private ProgressBar mLoadingView;
+    private boolean mShowLoadingIcon = true;
 
+    public void showLoadingIcon(boolean showLoadingIcon) {
+        mShowLoadingIcon = showLoadingIcon;
+    }
+
+    enum Mode {
+        NONE, PULL, LOADING;
+    }
 
     private Mode mMode = Mode.PULL;
     private int mColor;
     private float mMinRadius1;
     private Bitmap mIconBitmap;
+    private int mMaxRadius1;
 
     public ProgressBar getLoadingView() {
         return mLoadingView;
@@ -70,9 +80,6 @@ public class DropView extends FrameLayout {
         mColor = color;
     }
 
-    enum Mode {
-        NONE, PULL, LOADING;
-    }
 
     private android.view.GestureDetector.OnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
         @Override
@@ -100,7 +107,6 @@ public class DropView extends FrameLayout {
     }
 
     public void setDistanceY(int distanceY) {
-        System.out.println("distanceY = " + distanceY);
         if (mMode == Mode.PULL) {
             if (distanceY < -mPullThreshold) {
                 return;
@@ -119,14 +125,15 @@ public class DropView extends FrameLayout {
 
 
     private void onDistanceYChanged(int distanceY) {
-        float v = (1 - getScrollPercent()) * mRadius1;
+        float v = (1 - getScrollPercent()) * mMaxRadius1;
         if (v < mMinRadius2) {
             v = mMinRadius2;
         }
 
         mRadius2 = (int) v;
 
-        v = mMinRadius1 + (mRadius1 - mMinRadius1) * getScrollPercent();
+        System.out.println("getScrollPercent() = " + getScrollPercent());
+        v = mMinRadius1 + (mMaxRadius1 - mMinRadius1) * (1 - getScrollPercent());
         if (v < mMinRadius1) {
             v = mMinRadius1;
         }
@@ -155,10 +162,11 @@ public class DropView extends FrameLayout {
     private void init(AttributeSet attrs, int defStyle) {
         mColor = getResources().getColor(R.color.drop_view_color);
         mGestureDetector = new GestureDetector(getContext(), mGestureListener);
-        mRadius1 = dpToPx(25);
-        mMinRadius1 = (float) (mRadius1 * MIN_RADIUS1_FACTOR);
+        mMaxRadius1 = dpToPx(25);
+        mRadius1 = mMaxRadius1;
+        mMinRadius1 = mRadius1 * MIN_RADIUS1_FACTOR;
         mRadius2 = mRadius1;
-        mMinRadius2 = (float) (mRadius2 * 0.4);
+        mMinRadius2 = (float) (mRadius2 * MIN_RADIUS2_FACTOR);
         mTopPadding = dpToPx(15);
         mPullThreshold = dpToPx(100);
         mBzrOffset = dpToPx(10);
@@ -229,7 +237,9 @@ public class DropView extends FrameLayout {
 
         canvas.drawPath(path, paint);
 
-        drawLoadingIcon(canvas, circleRect);
+        if (mShowLoadingIcon) {
+            drawLoadingIcon(canvas, circleRect);
+        }
     }
 
     private void drawLoadingIcon(Canvas canvas, RectF rectf) {
