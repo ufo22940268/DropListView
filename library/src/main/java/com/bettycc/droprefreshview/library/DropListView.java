@@ -44,7 +44,7 @@ public class DropListView extends ListView {
     private final float mLoadingHeaderHeight;
     private ValueAnimator mRestoreAnimator;
     private ValueAnimator mScrollToLoadingAnimator;
-    private boolean mReleaseScrollStarted;
+    private boolean mDisablePullRelease;
 
     public DropListView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -88,11 +88,9 @@ public class DropListView extends ListView {
             }
         }
 
-        if (ev.getAction() == MotionEvent.ACTION_UP && !mReleaseScrollStarted) {
+        if (ev.getAction() == MotionEvent.ACTION_UP && !mDisablePullRelease) {
             onPullRelease();
         }
-
-
 
         return super.onTouchEvent(ev);
     }
@@ -102,8 +100,8 @@ public class DropListView extends ListView {
     }
 
     private void onPullRelease() {
-        mReleaseScrollStarted = true;
-        int to;
+        mDisablePullRelease = true;
+        final int to;
         if (pullOverThreshold()) {
             to = (int) mLoadingHeaderHeight;
         } else {
@@ -118,17 +116,31 @@ public class DropListView extends ListView {
         mRestoreAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-                mDropView.showLoadingIcon(false);
+                if (!toTop()) {
+                    mDropView.showLoadingIcon(false);
+                }
+            }
+
+            private boolean toTop() {
+                return to == 0;
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                mDropView.showLoadingIcon(true);
+                if (toTop()) {
+                    mDisablePullRelease = false;
+                } else {
+                    mDropView.showLoadingIcon(true);
+                }
             }
 
             @Override
             public void onAnimationCancel(Animator animation) {
-                mDropView.showLoadingIcon(true);
+                if (toTop()) {
+                    mDisablePullRelease = false;
+                } else {
+                    mDropView.showLoadingIcon(true);
+                }
             }
 
             @Override
@@ -236,13 +248,13 @@ public class DropListView extends ListView {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     mDropView.reset();
-                    mReleaseScrollStarted = false;
+                    mDisablePullRelease = false;
                 }
 
                 @Override
                 public void onAnimationCancel(Animator animation) {
                     mDropView.reset();
-                    mReleaseScrollStarted = false;
+                    mDisablePullRelease = false;
                 }
 
                 @Override

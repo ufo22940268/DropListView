@@ -23,6 +23,7 @@ public class DropView extends FrameLayout {
     private static final float SHRINK_FACTOR = 0.7f;
     public static final float MIN_RADIUS1_FACTOR = 0.8f;
     public static final float MIN_RADIUS2_FACTOR = 0.3f;
+    public static final int MAX_OFFSET_DEGREE = 30;
     private GestureDetector mGestureDetector;
 
     private int mDistanceY = 0;
@@ -160,6 +161,7 @@ public class DropView extends FrameLayout {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
+
         mColor = getResources().getColor(R.color.drop_view_color);
         mGestureDetector = new GestureDetector(getContext(), mGestureListener);
         mMaxRadius1 = dpToPx(25);
@@ -223,7 +225,9 @@ public class DropView extends FrameLayout {
         Path path = new Path();
         path.setFillType(Path.FillType.WINDING);
         RectF rectF = new RectF(cp1.x - mRadius1, cp1.y - mRadius1, cp1.x + mRadius1, cp1.y + mRadius1);
-        path.addArc(rectF, -180, 180);
+        int offsetDegree = (int) (MAX_OFFSET_DEGREE*getScrollPercent());
+        double offsetRadians = Math.toRadians(offsetDegree);
+        path.addArc(rectF, -180 - offsetDegree, 180 + 2*offsetDegree);
 
         /**
          * Draw loading icon.
@@ -233,7 +237,8 @@ public class DropView extends FrameLayout {
         addBzr(path, cp1.x + mRadius1, cp1.y, cp2.x + mRadius2, cp2.y, Side.RIGHT);
         rectF = new RectF(cp2.x - mRadius2, cp2.y - mRadius2, cp2.x + mRadius2, cp2.y + mRadius2);
         path.addArc(rectF, 0, 180);
-        addBzr(path, cp2.x - mRadius2, cp2.y, cp1.x - mRadius1, cp1.y, Side.LEFT);
+        addBzr(path, cp2.x - mRadius2, cp2.y,
+                (float) (cp1.x - mRadius1*Math.cos(offsetRadians)), (float) (cp1.y + mRadius1*Math.sin(offsetRadians)), Side.LEFT);
 
         canvas.drawPath(path, paint);
 
@@ -257,15 +262,15 @@ public class DropView extends FrameLayout {
         canvas.restore();
     }
 
-    private void addBzr(Path path, int x, int y, int x1, int y1, Side side) {
-        int i = (int) (getScrollPercent() * mBzrOffset);
-        int mx;
+    private void addBzr(Path path, float x, float y, float x1, float y1, Side side) {
+        float i = (int) (getScrollPercent() * mBzrOffset);
+        float mx;
         if (side == Side.RIGHT) {
             mx = (x + x1) / 2 - i;
         } else {
             mx = (x + x1) / 2 + i;
         }
-        int my = (y + y1) / 2 - i;
+        float my = (y + y1) / 2 - i;
         path.quadTo(mx, my, x1, y1);
     }
 
