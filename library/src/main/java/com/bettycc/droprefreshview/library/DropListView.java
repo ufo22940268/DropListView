@@ -63,12 +63,12 @@ public class DropListView extends ListView {
         updateDropviewScroll(0);
     }
 
-    private void updateHeaderHeight(int headerHeight) {
+    public void updateHeaderHeight(int headerHeight) {
         mDropView.getLayoutParams().height = headerHeight;
         mDropView.requestLayout();
     }
 
-    private void updateDropviewScroll(int headerHeight) {
+    public void updateDropviewScroll(int headerHeight) {
         mDropView.setScroll(convertHeaderHeightToScroll(headerHeight));
     }
 
@@ -113,6 +113,27 @@ public class DropListView extends ListView {
             @Override
             public void onHeightUpdated(int height) {
                 updateHeaderHeight(height);
+            }
+        });
+        mRestoreAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                mDropView.showLoadingIcon(false);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mDropView.showLoadingIcon(true);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mDropView.showLoadingIcon(true);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
             }
         });
         mRestoreAnimator.start();
@@ -235,6 +256,10 @@ public class DropListView extends ListView {
 
     private int getHeaderBottom() {
         return mHeaderView.getBottom();
+    }
+
+    public DropView getDropView() {
+        return mDropView;
     }
 
     public static interface OnRefreshListener {

@@ -1,10 +1,13 @@
 package com.bettycc.droprefreshview.library;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -18,7 +21,8 @@ import android.widget.ProgressBar;
 public class DropView extends FrameLayout {
 
     private static final float SHRINK_FACTOR = 0.7f;
-    public static final double MIN_RADIUS1_FACTOR = 0.8;
+    public static final float MIN_RADIUS1_FACTOR = 0.8f;
+    public static final float MIN_RADIUS2_FACTOR = 0.3f;
     private GestureDetector mGestureDetector;
 
     private int mDistanceY = 0;
@@ -30,11 +34,21 @@ public class DropView extends FrameLayout {
     private int mPullThreshold;
     private int mBzrOffset;
     private ProgressBar mLoadingView;
+    private boolean mShowLoadingIcon = true;
 
+    public void showLoadingIcon(boolean showLoadingIcon) {
+        mShowLoadingIcon = showLoadingIcon;
+    }
+
+    enum Mode {
+        NONE, PULL, LOADING;
+    }
 
     private Mode mMode = Mode.PULL;
     private int mColor;
     private float mMinRadius1;
+    private Bitmap mIconBitmap;
+    private int mMaxRadius1;
 
     public ProgressBar getLoadingView() {
         return mLoadingView;
@@ -66,9 +80,6 @@ public class DropView extends FrameLayout {
         mColor = color;
     }
 
-    enum Mode {
-        NONE, PULL, LOADING;
-    }
 
     private android.view.GestureDetector.OnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
         @Override
@@ -96,7 +107,6 @@ public class DropView extends FrameLayout {
     }
 
     public void setDistanceY(int distanceY) {
-        System.out.println("distanceY = " + distanceY);
         if (mMode == Mode.PULL) {
             if (distanceY < -mPullThreshold) {
                 return;
@@ -115,14 +125,15 @@ public class DropView extends FrameLayout {
 
 
     private void onDistanceYChanged(int distanceY) {
-        float v = (1 - getScrollPercent()) * mRadius1;
+        float v = (1 - getScrollPercent()) * mMaxRadius1;
         if (v < mMinRadius2) {
             v = mMinRadius2;
         }
 
         mRadius2 = (int) v;
 
-        v = mMinRadius1 + (mRadius1 - mMinRadius1) * getScrollPercent();
+        System.out.println("getScrollPercent() = " + getScrollPercent());
+        v = mMinRadius1 + (mMaxRadius1 - mMinRadius1) * (1 - getScrollPercent());
         if (v < mMinRadius1) {
             v = mMinRadius1;
         }
@@ -151,10 +162,11 @@ public class DropView extends FrameLayout {
     private void init(AttributeSet attrs, int defStyle) {
         mColor = getResources().getColor(R.color.drop_view_color);
         mGestureDetector = new GestureDetector(getContext(), mGestureListener);
-        mRadius1 = dpToPx(25);
-        mMinRadius1 = (float) (mRadius1 * MIN_RADIUS1_FACTOR);
+        mMaxRadius1 = dpToPx(25);
+        mRadius1 = mMaxRadius1;
+        mMinRadius1 = mRadius1 * MIN_RADIUS1_FACTOR;
         mRadius2 = mRadius1;
-        mMinRadius2 = (float) (mRadius2 * 0.4);
+        mMinRadius2 = (float) (mRadius2 * MIN_RADIUS2_FACTOR);
         mTopPadding = dpToPx(15);
         mPullThreshold = dpToPx(100);
         mBzrOffset = dpToPx(10);
@@ -166,6 +178,8 @@ public class DropView extends FrameLayout {
         params.topMargin = mTopPadding - dpToPx(5);
         params.gravity = Gravity.CENTER_HORIZONTAL;
         mLoadingView.setLayoutParams(params);
+
+        mIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_refresh_white_48dp);
 
         /**
          * Adjust loading view position to fit drop view.
@@ -211,12 +225,36 @@ public class DropView extends FrameLayout {
         RectF rectF = new RectF(cp1.x - mRadius1, cp1.y - mRadius1, cp1.x + mRadius1, cp1.y + mRadius1);
         path.addArc(rectF, -180, 180);
 
+        /**
+         * Draw loading icon.
+         */
+        RectF circleRect = new RectF(rectF);
+
         addBzr(path, cp1.x + mRadius1, cp1.y, cp2.x + mRadius2, cp2.y, Side.RIGHT);
         rectF = new RectF(cp2.x - mRadius2, cp2.y - mRadius2, cp2.x + mRadius2, cp2.y + mRadius2);
         path.addArc(rectF, 0, 180);
         addBzr(path, cp2.x - mRadius2, cp2.y, cp1.x - mRadius1, cp1.y, Side.LEFT);
 
         canvas.drawPath(path, paint);
+
+        if (mShowLoadingIcon) {
+            drawLoadingIcon(canvas, circleRect);
+        }
+    }
+
+    private void drawLoadingIcon(Canvas canvas, RectF rectf) {
+        canvas.save();
+        canvas.translate(0, -dpToPx(2));
+        int l = dpToPx(8), r = dpToPx(8), b = dpToPx(8);
+        int t = dpToPx(8);
+        Rect src = new Rect(0, 0, mIconBitmap.getWidth(), mIconBitmap.getHeight());
+        Rect dst = new Rect((int) rectf.left, (int) rectf.top, (int) rectf.right, (int) rectf.bottom);
+        dst.left = dst.left + l;
+        dst.top = dst.top + t;
+        dst.right = dst.right - r;
+        dst.bottom = dst.bottom - b;
+        canvas.drawBitmap(mIconBitmap, src, dst, null);
+        canvas.restore();
     }
 
     private void addBzr(Path path, int x, int y, int x1, int y1, Side side) {
